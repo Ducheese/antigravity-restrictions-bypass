@@ -15,10 +15,9 @@
 
 ## 工具脚本目录 (`scripts/`)
 
-- [scan-patch-sites.js](scripts/scan-patch-sites.js): 通用动态特征扫描脚本，通过机器码模式自动标定新版本 `agy.exe` 中 12 处修改点的物理文件偏移（FileRaw Offset）。
-- [patch-agy-1.4.6.js](scripts/patch-agy-1.4.6.js): 针对 `agy` v1.4.6 的正式补丁落地脚本（含 SHA256 校验、12 处纯数值机器码等长写入、Windows 原子重命名替换）。
-- [verify-patch-1.4.6.js](scripts/verify-patch-1.4.6.js): 对磁盘上修补后的 `agy.exe` 12 处修改点执行逐字节核验与文件体积验证。
-- 历史版本存档：[patch-agy-1.4.4.js](scripts/patch-agy-1.4.4.js)、[patch-agy-1.4.3.js](scripts/patch-agy-1.4.3.js) 等。
+- **[patch-agy.js](scripts/patch-agy.js)**: **全版本通用自适应补丁工具**（推荐）。基于 12 处特征签名动态扫描任意 1.4.x+ 版本的 `agy.exe`，无需硬编码偏移，支持 `status` 状态检测、`patch` 自动修补与 `verify` 读盘核验。
+- [scan-patch-sites.js](scripts/scan-patch-sites.js): 通用底层机器码扫描脚本，输出 12 处修改点的精确汇编上下文与物理偏移。
+- 历史版本存档：[patch-agy-1.4.6.js](scripts/patch-agy-1.4.6.js)、[verify-patch-1.4.6.js](scripts/verify-patch-1.4.6.js)、[patch-agy-1.4.4.js](scripts/patch-agy-1.4.4.js)、[patch-agy-1.4.3.js](scripts/patch-agy-1.4.3.js) 等。
 
 ---
 
