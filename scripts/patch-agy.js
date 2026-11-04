@@ -70,10 +70,10 @@ function resolveSites(buf, targetMode /* 'orig' | 'patched' */) {
   const t1Lead = Buffer.concat([Buffer.from('41b9', 'hex'), v_20k, Buffer.from('7408', 'hex')]);
   while ((idx = buf.indexOf(t1Lead, idx)) !== -1) { t1_hits.push(idx); idx++; }
 
-  // T2: 31 d2 eb 05 ba [20k] 44 89 8c 24
+  // T2: 31 d2 eb 05 ba [20k]
   const t2_hits = [];
   idx = 0;
-  const t2Lead = Buffer.concat([Buffer.from('31d2eb05ba', 'hex'), v_20k, Buffer.from('44898c24', 'hex')]);
+  const t2Lead = Buffer.concat([Buffer.from('31d2eb05ba', 'hex'), v_20k]);
   while ((idx = buf.indexOf(t2Lead, idx)) !== -1) { t2_hits.push(idx + 4); idx++; }
 
   // T3 & T4 (User Clamp) & T5 & T6 (Workspace Clamp)
@@ -94,10 +94,10 @@ function resolveSites(buf, targetMode /* 'orig' | 'patched' */) {
   const t7Lead = Buffer.concat([Buffer.from('4885c0ba', 'hex'), v_20k, Buffer.from('7406', 'hex')]);
   while ((idx = buf.indexOf(t7Lead, idx)) !== -1) { t7_hits.push(idx + 3); idx++; }
 
-  // T8: 31 db eb 05 bb [20k] 89 94 24
+  // T8: 31 db eb 05 bb [20k]
   const t8_hits = [];
   idx = 0;
-  const t8Lead = Buffer.concat([Buffer.from('31dbeb05bb', 'hex'), v_20k, Buffer.from('899424', 'hex')]);
+  const t8Lead = Buffer.concat([Buffer.from('31dbeb05bb', 'hex'), v_20k]);
   while ((idx = buf.indexOf(t8Lead, idx)) !== -1) { t8_hits.push(idx + 4); idx++; }
 
   const ok = (
