@@ -1,5 +1,5 @@
 /**
- * patch-agy.js (Universal Dynamic Patcher)
+ * patch-rules.js (Universal Dynamic Rules Patcher)
  * 
  * Antigravity CLI 全版本通用自适应双层规则门禁放宽补丁脚本。
  * 
@@ -18,10 +18,10 @@
  *   4. Windows 原子重命名落地，防文件锁冲突。
  * 
  * 用法：
- *   node scripts/patch-agy.js              # 自动检测并修补当前系统 agy.exe
- *   node scripts/patch-agy.js status       # 查看当前修补状态与 12 处点位解析
- *   node scripts/patch-agy.js verify       # 校验当前磁盘文件是否 100% 正确修补
- *   node scripts/patch-agy.js [path_to_exe] # 指定目标二进制路径
+ *   node scripts/patch-rules.js              # 自动检测并修补当前系统 agy.exe
+ *   node scripts/patch-rules.js status       # 查看当前修补状态与 12 处点位解析
+ *   node scripts/patch-rules.js verify       # 校验当前磁盘文件是否 100% 正确修补
+ *   node scripts/patch-rules.js [path_to_exe] # 指定目标二进制路径
  */
 
 const fs = require('fs');

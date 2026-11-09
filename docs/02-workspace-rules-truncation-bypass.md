@@ -147,31 +147,26 @@ type RuleItem struct {
 
 ## 六、 自动化工程落地与操作规范
 
-### 1. 推荐：全版本自适应通用补丁工具 (`scripts/patch-agy.js`)
+### 1. 推荐：全版本自适应通用补丁工具 (`scripts/patch-rules.js`)
 脚本内置 12 处特征签名动态扫描引擎，无需为每个小版本人工标定偏移，自动适配 1.4.x+ 任意版本：
 
 ```bash
 # 查看当前目标状态与 12 处修改点定位详情
-node scripts/patch-agy.js status
+node scripts/patch-rules.js status
 
 # 一键执行自适应安全修补（含出厂原版自动备份与 Windows 原子重命名落地）
-node scripts/patch-agy.js patch
+node scripts/patch-rules.js patch
 
 # 校验当前磁盘可执行文件是否 100% 正确生效
-node scripts/patch-agy.js verify
+node scripts/patch-rules.js verify
 ```
 
-### 2. 备用：传统版本硬编码与底层扫描工具
-- **底层特征扫描**：`node scripts/scan-patch-sites.js <exe路径>` 扫描代码段中的常量出现频率；
-- **固定版本补丁**：`scripts/patch-agy-1.4.6.js`、`scripts/patch-agy-1.4.4.js` 提供历史版本的硬编码快照。
-4. 采用 Windows **原子重命名**（`rename` 正在运行的旧文件 -> 写入新文件）安全替换 `C:\Users\<user>\AppData\Local\agy\bin\agy.exe`。
-
-### 3. 逐字节二次核验
+### 2. 逐字节二次核验
 运行：
 ```bash
-node scripts/patch-agy.js verify
+node scripts/patch-rules.js verify
 ```
-确保磁盘上的可执行文件 12 处字节替换 100% 正确且文件体积保持 0 偏差。
+确保磁盘上的可执行文件 12 处字节替换 100% 正确且文件体积保持 0 偏差。采用 Windows **原子重命名**（`rename` 正在运行的旧文件 -> 写入新文件）安全替换。
 
 ---
 
