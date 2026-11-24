@@ -148,13 +148,13 @@ Windows NTFS 具备一个关键特性：**运行中的可执行文件禁止覆�
 
 ---
 
-## 六、 生产环境双补丁共存与数据实证
+## 六、 生产环境全量修补与数据实证
 
-### 1. 与 12 处规则门禁补丁（500KB + 200K Tokens）双向共存
-在 `scripts/patch-context.py` 中引入 `--skip-rules` 参数，与通用规则补丁 [`scripts/patch-rules.js`](file:///F:/Git/tool-dev/Ducheese/antigravity-restrictions-bypass/scripts/patch-rules.js) 解耦：
-- 先由 `patch-rules.js` 完成 12 处指令级规则放宽（B1~B4 500KB 字节 + T1~T8 200K Tokens）；
-- 再由 `patch-context.py --tier 1 --skip-rules` 打入 512K 上下文跳板；
-- 二者物理偏移完全不重叠，读盘校验双 100% PASS。
+### 1. 单脚本三合一体系与规则解耦能力
+`scripts/patch-context.py` 原生将【上下文扩容】与【规则门禁放宽】合二为一（基于 Go pclntab 动态符号解析，单脚本同时完成 512K/734K/983K 上下文跳板注入与 1MB 规则文件/131K 规则预算放宽）。
+若仅需要提升上下文容量而保持官方规则门禁不变，可传入 `--skip-rules` 参数实现独立解耦控制：
+- **默认全量模式**：`python scripts/patch-context.py --tier 1 -y`，一键完成 512K 上下文与 1MB/131K 规则放宽；
+- **解耦独立模式**：`python scripts/patch-context.py --tier 1 --skip-rules -y`，仅打入上下文跳板，不触碰规则逻辑。
 
 ### 2. 真实生产环境（v1.5.3）SQLite 数据实证
 打入补丁重启 Antigravity 后，真实请求发往 Gemini 时，会话数据库（`gen_metadata`）记录下不可辩驳的底层数据：

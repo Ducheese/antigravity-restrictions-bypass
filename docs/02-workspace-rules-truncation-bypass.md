@@ -147,26 +147,25 @@ type RuleItem struct {
 
 ## 六、 自动化工程落地与操作规范
 
-### 1. 推荐：全版本自适应通用补丁工具 (`scripts/patch-rules.js`)
-脚本内置 12 处特征签名动态扫描引擎，无需为每个小版本人工标定偏移，自动适配 1.4.x+ 任意版本：
+### 1. 推荐：全版本通用动态补丁工具 (`scripts/patch-context.py`)
+工具利用 Go 原生 `pclntab` 符号表动态定位 `readGlobalRules`、`parseRuleFile`、`convertSkillPath` 与 `computeTruncatedCustomizations`，彻底摆脱固定机器码特征对编译器指令排布的依赖，自动适配任意新版 `agy.exe`：
 
 ```bash
-# 查看当前目标状态与 12 处修改点定位详情
-node scripts/patch-rules.js status
+# 查看当前目标状态与修改点定位详情（只读预检）
+python scripts/patch-context.py --status
 
-# 一键执行自适应安全修补（含出厂原版自动备份与 Windows 原子重命名落地）
-node scripts/patch-rules.js patch
+# 一键执行自适应安全修补（默认全量完成 1MB 单文件/131K 规则预算 + 512K 上下文三合一）
+python scripts/patch-context.py --tier 1 -y
 
-# 校验当前磁盘可执行文件是否 100% 正确生效
-node scripts/patch-rules.js verify
+# 仅放宽规则，不碰上下文
+python scripts/patch-context.py --context-limit 256000 -y
+
+# 一键从备份还原出厂原版
+python scripts/patch-context.py --restore -y
 ```
 
-### 2. 逐字节二次核验
-运行：
-```bash
-node scripts/patch-rules.js verify
-```
-确保磁盘上的可执行文件 12 处字节替换 100% 正确且文件体积保持 0 偏差。采用 Windows **原子重命名**（`rename` 正在运行的旧文件 -> 写入新文件）安全替换。
+### 2. 补丁核验与热替换落地
+运行 `python scripts/patch-context.py --status` 即可实时读取磁盘二进制状态。脚本在 Windows 环境下采用两步**原子重命名**（`rename` 正在运行的原二进制 -> 写入新文件）安全落地，杜绝文件锁冲突。
 
 ---
 

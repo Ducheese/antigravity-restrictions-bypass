@@ -1,5 +1,7 @@
 # Antigravity Restrictions Bypass (agy 内核限制突破与规避指南)
 
+[English](README_EN.md) | [中文](README.md)
+
 本仓库专门记录 Google Antigravity CLI (`agy.exe`) 内部各项限制机制的逆向分析依据、防御机制解构、实测复盘与补丁工具集。
 
 ---
@@ -9,21 +11,17 @@
 | 议题 | 状态 | 核心机理 | 解决方案 / 结论 | 详细文档 |
 | :--- | :---: | :--- | :--- | :--- |
 | **议题一：上下文容量扩容与压缩起爆线推迟**<br>*(Checkpointer & Context Window)* | ✅ 成功攻克<br>(动态跳板) | 官方后端在 `applyFeatureProviderCheckpointOverrideConfig` 最终出口强制覆写上限为 256k | 在配置最终合并出口借用未引用的 Setter 注入动态汇编跳板，保留原生 `hooks.checkpointNeeded` 防爆气囊，支持三档选择（512K/734K/983K） | [01-context-compaction-interception.md](docs/01-context-compaction-interception.md) |
-| **议题二：移除工作区规则字节截断**<br>*(GEMINI.md / CLAUDE.md Rules)* | ✅ 完美攻克<br>(持续对齐) | 规则注入存在双层硬编码门禁：第一层单文件 24,000 字节换行截断，第二层规则集 20,000 Tokens 预算整条丢弃 | 双层纯数值等长机器码替换（放宽至 500,000 字节 + 200,000 Tokens），零控制流破坏，配金丝雀探针 | [02-workspace-rules-truncation-bypass.md](docs/02-workspace-rules-truncation-bypass.md) |
+| **议题二：移除工作区规则字节截断**<br>*(GEMINI.md / CLAUDE.md Rules)* | ✅ 完美攻克<br>(持续对齐) | 规则注入存在双层硬编码门禁：第一层单文件 24,000 字节换行截断，第二层规则集 20,000 Tokens 预算整条丢弃 | 基于 Go pclntab 动态符号解析，放宽单文件至 1MB 字节 + 规则总预算至 131,072 Tokens，零控制流破坏，配金丝雀探针 | [02-workspace-rules-truncation-bypass.md](docs/02-workspace-rules-truncation-bypass.md) |
 
 ---
 
 ## 工具脚本目录 (`scripts/`)
 
-- **[patch-rules.js](scripts/patch-rules.js)**: **全版本通用自适应【规则门禁】放宽工具**（Node.js）。基于 12 处特征签名动态扫描任意 1.4.x+ 版本的 `agy.exe`，无需硬编码偏移。放宽单文件规则至 500KB，放宽总规则预算至 200K Tokens，彻底解决规则截断与丢弃问题。
-  - `node scripts/patch-rules.js status`：预检 12 处点位状态
-  - `node scripts/patch-rules.js patch`：自动打入规则补丁
-  - `node scripts/patch-rules.js verify`：读盘校验补丁完整性
-- **[patch-context.py](scripts/patch-context.py)**: **全版本通用【上下文容量】扩容工具**（Python 3，零外部依赖）。基于 Go pclntab 动态符号解析与出口跳板挂载，完整保留原生压缩防爆气囊，安全提升会话活跃窗口。
+- **[patch-context.py](scripts/patch-context.py)**: **全版本通用动态补丁工具**（Python 3，零外部依赖）。基于 Go pclntab 动态符号解析与出口跳板挂载，单脚本同时完成【上下文扩容】（推迟 256K 压缩起爆线至 512K/734K/983K）与【规则门禁放宽】（放宽单文件规则至 1MB，规则总预算至 131K Tokens），彻底解决规则截断与上下文早压缩问题。
   - 支持三档选择：**Tier 1（512K 推荐主力档）**、**Tier 2（734K 进阶高容档）**、**Tier 3（983K 极限长对话档）**。
   - `python scripts/patch-context.py --status`：只读查看当前后端与近期会话数据库进度
-  - `python scripts/patch-context.py --tier 1 -y`：一键打入 512K 推荐档
-  - `python scripts/patch-context.py --tier 2 --skip-rules -y`：一键打入 734K 档（仅打上下文，不碰规则）
+  - `python scripts/patch-context.py --tier 1 -y`：一键打入 512K 推荐档与规则放宽（默认全量修补）
+  - `python scripts/patch-context.py --tier 1 --skip-rules -y`：仅打上下文，不碰规则
   - `python scripts/patch-context.py --restore -y`：一键恢复原版
 - **[verify_session.py](scripts/verify_session.py)**: **会话底层元数据核验工具**（Python 3）。直接解码 SQLite `gen_metadata` 与 `executor_metadata` Protobuf 二进制数据，实时展示当前会话真实请求上限与进度条。
 
