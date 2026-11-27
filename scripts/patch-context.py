@@ -670,12 +670,25 @@ def build_x86_64_plan(img: BinaryImage, funcs: dict, context_limit=DEFAULT_CONTE
                 ("rules_budget", "rules token budget -> 131072", c_rel + 10, budget2_before, budget2_after),
             ]
         elif store_r9_disp8 != -1 and store_edx_disp8 != -1:
-            matched_r9 = fb_trunc[idx_r9 : idx_r9 + 6]
-            matched_edx = fb_trunc[edx_rel : edx_rel + 9]
+            disp_a = fb_trunc[store_r9_disp8 + 4 : store_r9_disp8 + 5]
+            disp_b = fb_trunc[store_edx_disp8 + 3 : store_edx_disp8 + 4]
+            # Match compact disp8 call-site sequence (11 bytes):
+            # mov ebx, [rsp+disp_b]; mov rcx, rax; mov eax, [rsp+disp_a]
+            call_disp8_before = b"\x8b\x5c\x24" + disp_b + b"\x48\x89\xc1\x8b\x44\x24" + disp_a
+            # Drop-in replacement (11 bytes):
+            # mov rcx, rax (3) + mov eax, 131072 (5) + mov ebx, eax (2) + nop (1)
+            call_disp8_after = b"\x48\x89\xc1\xb8\x00\x00\x02\x00\x89\xc3\x90"
+            call_matches = [
+                i for i in range(len(fb_trunc) - 16)
+                if fb_trunc[i : i + 11] in (call_disp8_before, call_disp8_after)
+                and fb_trunc[i + 11] == 0xE8
+            ]
+            if len(call_matches) != 1:
+                raise RuntimeError(f"Expected 1 disp8 budget call-site match in computeTruncatedCustomizations, found {len(call_matches)}")
+            c_rel = call_matches[0]
             budget_sites = [
-                ("rules_budget_zero", "rules token budget (zero fallback) -> 131072", r9_rel, r9_zero_before, r9_after),
-                ("rules_budget_default", "rules token budget (default) -> 131072", idx_r9, matched_r9 if matched_r9 != r9_after else r9_def_20k, r9_after),
-                ("customizations_budget", "customizations token budget -> 131072", edx_rel, matched_edx if matched_edx != edx_after else edx_zero_20k, edx_after),
+                ("call_site_budget_override", "truncateFromBreakdown arguments (eax=rules, ebx=customizations) -> 131072",
+                 c_rel, call_disp8_before, call_disp8_after),
             ]
         else:
             raise RuntimeError("Could not find stack slot stores for rules/customizations budgets")
